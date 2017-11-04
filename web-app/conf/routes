@@ -15,3 +15,5 @@ GET     /assets/*file               controllers.Assets.versioned(path="/public",
 GET     /experiments/:id             controllers.ExperimentController.experiment(id: String)
 
 GET     /experiments             controllers.ExperimentController.experiments
+
+GET     /sockets/experiments             controllers.ExperimentController.experimentsWebSocket

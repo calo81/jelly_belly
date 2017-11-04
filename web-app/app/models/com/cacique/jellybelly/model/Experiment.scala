@@ -2,8 +2,12 @@ package com.cacique.jellybelly.model
 
 import akka.actor.{ActorLogging, Props}
 import akka.persistence.PersistentActor
+import play.api.libs.json.{Format, Json}
 
-sealed class ExperimentState(experimentId: String, val name: String, var variants: Seq[Variant]) {
+object ExperimentState {
+  implicit val experimetnStateFormat: Format[ExperimentState] = Json.format[ExperimentState]
+}
+sealed case class ExperimentState(experimentId: String, val name: String, var variants: Seq[Variant]) {
   private var participants: Seq[Participant] = Seq()
 
   def addParticipant(participant: Participant): Unit = {
@@ -29,8 +33,12 @@ class Experiment(
   }
 
   override def receiveCommand = {
-    case Participate(participantId) => persist(Participated(participantId))(updateState)
-    case GetExperiment(_) => sender() ! state
+    case Participate(participantId) =>
+      persist(Participated(participantId))(updateState)
+      context.parent ! ExperimentUpdated(state)
+    case GetExperiment(_) =>
+      sender() ! state
+      context.parent ! ExperimentUpdated(state)
   }
 
 }
