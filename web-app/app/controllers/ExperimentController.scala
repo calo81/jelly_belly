@@ -2,7 +2,7 @@ package controllers
 
 import javax.inject.Inject
 
-import akka.actor.{ActorPath, ActorSystem, Props}
+import akka.actor.{ActorPath, ActorRef, ActorSystem, Props}
 import com.cacique.jellybelly.model._
 import play.api.mvc.{AbstractController, ControllerComponents, WebSocket}
 import play.api.libs.iteratee._
@@ -24,7 +24,27 @@ import play.api.mvc.WebSocket.MessageFlowTransformer
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.duration._
+import akka.actor._
 
+
+object PerClientActor {
+  def props(client: ActorRef, experimentHandler: ActorRef) = Props(new PerClientActor(client, experimentHandler))
+}
+
+class PerClientActor(clientActor: ActorRef, experimentHandlerActor: ActorRef) extends Actor {
+  override def receive = {
+    case ExperimentUpdated(experimentState) =>
+      clientActor ! Json.obj("experiment"-> experimentState).toString()
+    case "subscribe" =>
+      experimentHandlerActor ! Subscribe(self)
+      clientActor ! "subscribed"
+  }
+
+  override def postStop() = {
+    println("STOPPING")
+    experimentHandlerActor ! Unsubscribe(self)
+  }
+}
 
 @Singleton
 class ExperimentController @Inject()(cc: ControllerComponents, actorSystem: ActorSystem)(implicit exec: ExecutionContext) extends AbstractController(cc) {
@@ -35,6 +55,10 @@ class ExperimentController @Inject()(cc: ControllerComponents, actorSystem: Acto
 
   implicit val messageFlowTransformer = MessageFlowTransformer.jsonMessageFlowTransformer[String, ExperimentState]
 
+  implicit val actors = actorSystem
+
+  implicit val materializer = ActorMaterializer()
+
   def experiment(id: String) = Action.async { request =>
 
     (experimentActor ? GetExperiment(id)).mapTo[ExperimentState].map { experiment =>
@@ -43,37 +67,10 @@ class ExperimentController @Inject()(cc: ControllerComponents, actorSystem: Acto
 
   }
 
-  def experimentsWebSocket = WebSocket.accept[String, ExperimentState]{ request =>
-    val (queueSource, futureQueue) = peekMatValue(Source.queue[ExperimentState](10, OverflowStrategy.fail))
-
-    futureQueue.map { queue =>
-      experimentActor ! GetExperiments(queue)
+  def experimentsWebSocket = WebSocket.accept[String, String] { request =>
+    ActorFlow.actorRef { out =>
+      PerClientActor.props(out, experimentActor)
     }
-    val in = Sink.ignore
-
-    Flow.fromSinkAndSource(in, queueSource)
-  }
-
-  def experiments = Action {
-    val (queueSource, futureQueue) = peekMatValue(Source.queue[ExperimentState](10, OverflowStrategy.fail))
-
-    futureQueue.map { queue =>
-      experimentActor ! GetExperiments(queue)
-    }
-
-    Ok.chunked(queueSource.map { tick =>
-      val (prefix, author) = ("hi", "dd")
-      Json.obj("message" -> s"$prefix $tick", "author" -> author).toString + "\n"
-    }.limit(100))
-  }
-
-  private def peekMatValue[T, M](src: Source[T, M]): (Source[T, M], Future[M]) = {
-    val p = Promise[M]
-    val s = src.mapMaterializedValue { m =>
-      p.trySuccess(m)
-      m
-    }
-    (s, p.future)
   }
 
 }

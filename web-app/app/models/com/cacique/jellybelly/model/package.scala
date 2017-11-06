@@ -13,7 +13,9 @@ package object model {
 
   case class GetExperiment(id: String) extends Command
 
-  case class GetExperiments(queue: SourceQueueWithComplete[ExperimentState]) extends Command
+  case class Subscribe(actor: ActorRef) extends Command
+
+  case class Unsubscribe(actor: ActorRef) extends Command
 
   case class Participated(participant: Participant) extends Event
 
