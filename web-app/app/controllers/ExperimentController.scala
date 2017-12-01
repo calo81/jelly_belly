@@ -34,7 +34,7 @@ object PerClientActor {
 class PerClientActor(clientActor: ActorRef, experimentHandlerActor: ActorRef) extends Actor {
   override def receive = {
     case ExperimentUpdated(experimentState) =>
-      clientActor ! Json.obj("experiment"-> experimentState).toString()
+      clientActor ! Json.obj("experiment" -> experimentState).toString()
     case "subscribe" =>
       experimentHandlerActor ! Subscribe(self)
       clientActor ! "subscribed"
@@ -59,12 +59,18 @@ class ExperimentController @Inject()(cc: ControllerComponents, actorSystem: Acto
 
   implicit val materializer = ActorMaterializer()
 
-  def experiment(id: String) = Action.async { request =>
+  def experiment(id: String, variants: String) = Action.async { request =>
 
-    (experimentActor ? GetExperiment(id)).mapTo[ExperimentState].map { experiment =>
+    val allVariants = variants.split(",").map(v => Variant(v, 10))
+    (experimentActor ? GetExperiment(id, allVariants)).mapTo[ExperimentState].map { experiment =>
       Ok(experiment.name)
     }
 
+  }
+
+  def participate(experimentId: String, participantId: String) = Action { request =>
+    (experimentActor ! Participate(experimentId, Participant(participantId)))
+    Ok
   }
 
   def experimentsWebSocket = WebSocket.accept[String, String] { request =>

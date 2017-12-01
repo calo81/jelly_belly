@@ -19,17 +19,20 @@ class ExperimentHandler extends Actor with ActorLogging {
 
   val experiments = mutable.Map[String, ActorRef]()
 
-  val uiQueues = mutable.Map[String, Seq[ActorRef]]("subscriptions" -> Seq())
+  val webSocketActors = mutable.Map[String, Seq[ActorRef]]("subscriptions" -> Seq())
 
   override def receive = {
-    case req@GetExperiment(id) =>
-      val experiment = context.child(s"experiment_${id}").getOrElse(context.actorOf(Props(new Experiment(id, "hola", Nil)), s"experiment_${id}"))
+    case req@GetExperiment(id, variants) =>
+      val experiment = context.child(s"experiment_${id}").getOrElse(context.actorOf(Props(new Experiment(id, id, variants)), s"experiment_${id}"))
       experiments.put(s"experiment_${id}", experiment)
       experiment forward req
     case ev@ExperimentUpdated(_) =>
-      uiQueues.get("subscriptions").map(_.foreach(_ ! ev))
+      webSocketActors.get("subscriptions").map(_.foreach(_ ! ev))
     case Subscribe(actor) =>
-      uiQueues.put("subscriptions", actor +: uiQueues.get("subscriptions").get)
+      webSocketActors.put("subscriptions", actor +: webSocketActors.get("subscriptions").get)
+      experiments.values.foreach(_ ! PublishState)
+    case p@Participate(experimentId, _) =>
+      experiments.get(s"experiment_${experimentId}").foreach(_ ! p)
   }
 
 }

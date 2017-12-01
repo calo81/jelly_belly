@@ -20,7 +20,7 @@
                     console.log(event);
                     var data = JSON.parse(event.data);
                     var tweet = document.createElement("p");
-                    var text = document.createTextNode(data.text)
+                    var text = document.createTextNode(data.experiment.name+ " " + data.experiment.variants + " " + data.experiment.participants)
                     tweet.appendChild(text);
                     document.getElementById("ab-tests").appendChild(tweet);
                 };

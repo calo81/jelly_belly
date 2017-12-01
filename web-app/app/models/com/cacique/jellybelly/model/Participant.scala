@@ -1,4 +1,10 @@
 package com.cacique.jellybelly.model
 
-case class Participant(id: String, variant: Option[Variant] = None)
+import play.api.libs.json.{Format, Json}
+
+case class Participant(id: String)
+
+object Participant {
+  implicit val participantFormat: Format[Participant] = Json.format[Participant]
+}
 
