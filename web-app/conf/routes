@@ -17,3 +17,7 @@ GET     /experiments/:id/variants/:variants  controllers.ExperimentController.ex
 GET     /experiments/:id/participate/:participantId  controllers.ExperimentController.participate(id: String, participantId: String)
 
 GET     /sockets/experiments             controllers.ExperimentController.experimentsWebSocket
+
+GET     /assets/*file           controllers.Assets.at(path="/public", file)
+
+->          /webjars                webjars.Routes

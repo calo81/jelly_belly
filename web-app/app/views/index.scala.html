@@ -2,13 +2,13 @@
 * This template takes a single argument, a String containing a
 * message to display.
 *@
-@(message: String)(implicit request: RequestHeader)
+@(message: String, webJarsUtil: org.webjars.play.WebJarsUtil)(implicit request: RequestHeader)
     @*
     * Call the `main` template with two arguments. The first
     * argument is a `String` with the title of the page, the second
     * argument is an `Html` object containing the body of the page.
     *@
-    @main("Jelly Belly") {
+    @main("Jelly Belly", webJarsUtil) {
 
         <div id="ab-tests"></div>
 
@@ -17,6 +17,8 @@
                 var tweetSocket = new WebSocket(url);
 
                 tweetSocket.onmessage = function (event) {
+                    if(event.data == "subscribed")
+                        return;
                     console.log(event);
                     var data = JSON.parse(event.data);
                     var tweet = document.createElement("p");

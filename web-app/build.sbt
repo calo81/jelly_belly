@@ -17,3 +17,11 @@ libraryDependencies += "com.h2database" % "h2" % "1.4.196"
 libraryDependencies += "com.github.dnvriend" %% "akka-persistence-inmemory" % "2.5.1.1"
 libraryDependencies += "com.typesafe.play" %% "play-iteratees" % "2.6.1"
 libraryDependencies += "com.typesafe.play" %% "play-iteratees-reactive-streams" % "2.6.1"
+libraryDependencies += "org.webjars" % "bootstrap" % "3.1.1-2"
+libraryDependencies += "org.webjars" %% "webjars-play" % "2.6.1"
+libraryDependencies += "org.webjars.npm" % "react-dom" % "15.6.1"
+libraryDependencies += "org.webjars.npm" % "react" % "15.6.1"
+libraryDependencies += "org.webjars" % "jquery" % "3.2.1"
+
+
+
