@@ -1,3 +1,18 @@
+
+```
+export SBT_OPTS="-XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=2G -Xmx2048M"
+sbt
+```
+
+
+To compile react assets
+
+```
+./node_modules/.bin/webpack -d --watch
+```
+
+
+
 [<img src="https://img.shields.io/travis/playframework/play-scala-starter-example.svg"/>](https://travis-ci.org/playframework/play-scala-starter-example)
 
 # play-scala-starter-example

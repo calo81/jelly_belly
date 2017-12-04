@@ -2,7 +2,7 @@ name := """jelly-belly"""
 
 version := "1.0-SNAPSHOT"
 
-lazy val root = (project in file(".")).enablePlugins(PlayScala)
+lazy val root = (project in file(".")).enablePlugins(PlayScala, SbtWeb)
 
 resolvers += Resolver.sonatypeRepo("snapshots")
 resolvers += Resolver.jcenterRepo

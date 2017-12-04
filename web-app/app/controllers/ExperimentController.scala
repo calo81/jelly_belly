@@ -49,8 +49,6 @@ class PerClientActor(clientActor: ActorRef, experimentHandlerActor: ActorRef) ex
 @Singleton
 class ExperimentController @Inject()(cc: ControllerComponents, actorSystem: ActorSystem)(implicit exec: ExecutionContext) extends AbstractController(cc) {
 
-  val experimentActor = actorSystem.actorOf(Props[ExperimentHandler], "experiment-handler")
-
   implicit val timeout: Timeout = 10 hours
 
   implicit val messageFlowTransformer = MessageFlowTransformer.jsonMessageFlowTransformer[String, ExperimentState]
@@ -58,6 +56,8 @@ class ExperimentController @Inject()(cc: ControllerComponents, actorSystem: Acto
   implicit val actors = actorSystem
 
   implicit val materializer = ActorMaterializer()
+
+  lazy val experimentActor = actorSystem.actorOf(Props[ExperimentHandler], "experiment-handler")
 
   def experiment(id: String, variants: String) = Action.async { request =>
 
