@@ -1,6 +1,6 @@
 
 ```
-export SBT_OPTS="-XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=2G -Xmx2048M"
+export SBT_OPTS="-XX:+CMSClassUnloadingEnabled -Xmx2048M"
 sbt
 ```
 

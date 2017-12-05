@@ -1,6 +1,8 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 'use strict';
 
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
 var _react = require('react');
 
 var _react2 = _interopRequireDefault(_react);
@@ -11,11 +13,68 @@ var _reactDom2 = _interopRequireDefault(_reactDom);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-_reactDom2.default.render(_react2.default.createElement(
-    'h1',
-    null,
-    'Playframework'
-), document.getElementById('app'));
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var Echo = function (_React$Component) {
+    _inherits(Echo, _React$Component);
+
+    function Echo(props) {
+        _classCallCheck(this, Echo);
+
+        var _this = _possibleConstructorReturn(this, (Echo.__proto__ || Object.getPrototypeOf(Echo)).call(this, props));
+
+        _this.state = {
+            messages: []
+        };
+        return _this;
+    }
+
+    _createClass(Echo, [{
+        key: 'componentDidMount',
+        value: function componentDidMount() {
+            var _this2 = this;
+
+            // this is an "echo" websocket service
+            this.connection = new WebSocket('wss://echo.websocket.org');
+            // listen to onmessage event
+            this.connection.onmessage = function (evt) {
+                // add the new message to state
+                _this2.setState({
+                    messages: _this2.state.messages.concat([evt.data])
+                });
+            };
+
+            // for testing purposes: sending to the echo service which will send it back back
+            setInterval(function (_) {
+                _this2.connection.send(Math.random());
+            }, 2000);
+        }
+    }, {
+        key: 'render',
+        value: function render() {
+            // slice(-5) gives us the five most recent messages
+            return _react2.default.createElement(
+                'ul',
+                null,
+                this.state.messages.slice(-5).map(function (msg, idx) {
+                    return _react2.default.createElement(
+                        'li',
+                        { key: 'msg-' + idx },
+                        msg
+                    );
+                })
+            );
+        }
+    }]);
+
+    return Echo;
+}(_react2.default.Component);
+
+_reactDom2.default.render(_react2.default.createElement(Echo, null), document.getElementById('app'));
 
 },{"react":183,"react-dom":31}],2:[function(require,module,exports){
 (function (process){
