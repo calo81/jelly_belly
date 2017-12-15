@@ -1,30 +1,21 @@
 package controllers
 
-import javax.inject.Inject
+import javax.inject.{Inject, Singleton}
 
-import akka.actor.{ActorPath, ActorRef, ActorSystem, Props}
-import com.cacique.jellybelly.model._
-import play.api.mvc.{AbstractController, ControllerComponents, WebSocket}
-import play.api.libs.iteratee._
-
-import scala.concurrent.{ExecutionContext, Future, Promise}
+import akka.actor.{ActorRef, ActorSystem, Props, _}
 import akka.pattern.ask
-import models.com.cacique.jellybelly.model.ExperimentHandler
-import javax.inject.Singleton
-
-import akka.stream.actor.ActorPublisher
-import akka.stream.scaladsl.{Flow, Sink, Source, SourceQueueWithComplete}
-import akka.stream.{ActorMaterializer, OverflowStrategy}
-import akka.stream.stage.GraphStage
+import akka.stream.ActorMaterializer
 import akka.util.Timeout
-import play.api.Logger
-import play.api.libs.json.{Format, Json}
+import com.cacique.jellybelly.model._
+import models.com.cacique.jellybelly.model.ExperimentHandler
+import play.api.libs.json.Json
 import play.api.libs.streams.ActorFlow
 import play.api.mvc.WebSocket.MessageFlowTransformer
+import play.api.mvc.{AbstractController, ControllerComponents, WebSocket}
 
-import scala.concurrent.duration.Duration
+import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
-import akka.actor._
+import scala.util.Try
 
 
 object PerClientActor {
@@ -61,7 +52,10 @@ class ExperimentController @Inject()(cc: ControllerComponents, actorSystem: Acto
 
   def experiment(id: String, variants: String) = Action.async { request =>
 
-    val allVariants = variants.split(",").map(v => Variant(v, 10))
+    val allVariants = variants.split(",").map { v =>
+      val percentage = Try(v.split(":")(1)).getOrElse(-1).toString.toInt
+      Variant(v, percentage)
+    }
     (experimentActor ? GetExperiment(id, allVariants)).mapTo[ExperimentState].map { experiment =>
       Ok(experiment.name)
     }
