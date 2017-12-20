@@ -14,6 +14,7 @@
 
         <script type="text/javascript">
                 var url = "@routes.ExperimentController.experimentsWebSocket().webSocketURL()";
+                alert(url)
                 var tweetSocket = new WebSocket(url);
 
                 tweetSocket.onmessage = function (event) {

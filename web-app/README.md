@@ -28,4 +28,4 @@ To participate in an experiment
 http://localhost:9000/experiments/experimento/participate/some_participant
 ```
 
-Then just visiting `localhost:9000` You shuld be able to see the existing experiments.
+Then just visiting `localhost:9000` You should be able to see the existing experiments.

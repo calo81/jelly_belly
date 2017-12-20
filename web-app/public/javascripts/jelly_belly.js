@@ -13,6 +13,8 @@ var _reactDom2 = _interopRequireDefault(_reactDom);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
@@ -28,7 +30,7 @@ var Echo = function (_React$Component) {
         var _this = _possibleConstructorReturn(this, (Echo.__proto__ || Object.getPrototypeOf(Echo)).call(this, props));
 
         _this.state = {
-            messages: []
+            experiments: []
         };
         return _this;
     }
@@ -39,28 +41,31 @@ var Echo = function (_React$Component) {
             var _this2 = this;
 
             // this is an "echo" websocket service
-            this.connection = new WebSocket('wss://echo.websocket.org');
+            this.connection = new WebSocket('ws://localhost:9000/sockets/experiments');
+
+            this.connection.onopen = function (evt) {
+                _this2.connection.send("subscribe");
+            };
             // listen to onmessage event
             this.connection.onmessage = function (evt) {
                 // add the new message to state
-                _this2.setState({
-                    messages: _this2.state.messages.concat([evt.data])
-                });
+                if (evt.data != "subscribed") {
+                    var data = JSON.parse(evt.data);
+                    _this2.setState({
+                        experiments: _this2.state.experiments.concat([data.experiment.experimentId])
+                    });
+                }
             };
-
-            // for testing purposes: sending to the echo service which will send it back back
-            setInterval(function (_) {
-                _this2.connection.send(Math.random());
-            }, 2000);
         }
     }, {
         key: 'render',
         value: function render() {
+            alert(this.state.experiments);
             // slice(-5) gives us the five most recent messages
             return _react2.default.createElement(
                 'ul',
                 null,
-                this.state.messages.slice(-5).map(function (msg, idx) {
+                this.state.experiments.slice(-5).map(function (msg, idx) {
                     return _react2.default.createElement(
                         'li',
                         { key: 'msg-' + idx },
@@ -74,7 +79,133 @@ var Echo = function (_React$Component) {
     return Echo;
 }(_react2.default.Component);
 
+var NewExperimentToggler = function (_React$Component2) {
+    _inherits(NewExperimentToggler, _React$Component2);
+
+    function NewExperimentToggler(props) {
+        _classCallCheck(this, NewExperimentToggler);
+
+        var _this3 = _possibleConstructorReturn(this, (NewExperimentToggler.__proto__ || Object.getPrototypeOf(NewExperimentToggler)).call(this, props));
+
+        _this3.state = {
+            shown: false
+        };
+        _this3.toggle = _this3.toggle.bind(_this3);
+        return _this3;
+    }
+
+    _createClass(NewExperimentToggler, [{
+        key: 'toggle',
+        value: function toggle(event) {
+            var current_value = this.state.shown;
+            this.setState({ shown: !current_value });
+        }
+    }, {
+        key: 'render',
+        value: function render() {
+            return _react2.default.createElement(
+                'div',
+                null,
+                _react2.default.createElement('input', { type: 'button', value: '+', onClick: this.toggle }),
+                this.state.shown ? _react2.default.createElement(NewExperiment, null) : null
+            );
+        }
+    }]);
+
+    return NewExperimentToggler;
+}(_react2.default.Component);
+
+var NewExperiment = function (_React$Component3) {
+    _inherits(NewExperiment, _React$Component3);
+
+    function NewExperiment(props) {
+        _classCallCheck(this, NewExperiment);
+
+        var _this4 = _possibleConstructorReturn(this, (NewExperiment.__proto__ || Object.getPrototypeOf(NewExperiment)).call(this, props));
+
+        _this4.state = {
+            name: ''
+        };
+        _this4.handleChange = _this4.handleChange.bind(_this4);
+        _this4.handleSubmit = _this4.handleSubmit.bind(_this4);
+        return _this4;
+    }
+
+    _createClass(NewExperiment, [{
+        key: 'handleChange',
+        value: function handleChange(event) {
+            this.setState(_defineProperty({}, event.target.name, event.target.value));
+        }
+    }, {
+        key: 'handleSubmit',
+        value: function handleSubmit(event) {
+            var url = "http://localhost:9000/experiments/" + this.state.name + "/variants/" + this.state.variant_1_name + ":" + this.state.variant_1_value;
+            fetch(url);
+            event.preventDefault();
+        }
+    }, {
+        key: 'render',
+        value: function render() {
+            return _react2.default.createElement(
+                'form',
+                { onSubmit: this.handleSubmit },
+                _react2.default.createElement(
+                    'div',
+                    null,
+                    'Name:',
+                    _react2.default.createElement('input', { type: 'text', name: 'name', value: this.state.value, onChange: this.handleChange })
+                ),
+                _react2.default.createElement(
+                    'div',
+                    null,
+                    'Variants (Name and Percentage):',
+                    _react2.default.createElement(
+                        'div',
+                        null,
+                        _react2.default.createElement('input', { type: 'text', name: 'variant_1_name', value: this.state.value, onChange: this.handleChange }),
+                        _react2.default.createElement('input', { type: 'text', name: 'variant_1_value', value: this.state.value,
+                            onChange: this.handleChange })
+                    ),
+                    _react2.default.createElement(
+                        'div',
+                        null,
+                        _react2.default.createElement('input', { type: 'text', name: 'variant_2_name', value: this.state.value, onChange: this.handleChange }),
+                        _react2.default.createElement('input', { type: 'text', name: 'variant_2_value', value: this.state.value,
+                            onChange: this.handleChange })
+                    ),
+                    _react2.default.createElement(
+                        'div',
+                        null,
+                        _react2.default.createElement('input', { type: 'text', name: 'variant_3_name', value: this.state.value, onChange: this.handleChange }),
+                        _react2.default.createElement('input', { type: 'text', name: 'variant_3_value', value: this.state.value,
+                            onChange: this.handleChange })
+                    ),
+                    _react2.default.createElement(
+                        'div',
+                        null,
+                        _react2.default.createElement('input', { type: 'text', name: 'variant_4_name', value: this.state.value, onChange: this.handleChange }),
+                        _react2.default.createElement('input', { type: 'text', name: 'variant_4_value', value: this.state.value,
+                            onChange: this.handleChange })
+                    ),
+                    _react2.default.createElement(
+                        'div',
+                        null,
+                        _react2.default.createElement('input', { type: 'text', name: 'variant_5_name', value: this.state.value, onChange: this.handleChange }),
+                        _react2.default.createElement('input', { type: 'text', name: 'variant_5_value', value: this.state.value,
+                            onChange: this.handleChange })
+                    )
+                ),
+                _react2.default.createElement('input', { type: 'submit', value: 'Submit' })
+            );
+        }
+    }]);
+
+    return NewExperiment;
+}(_react2.default.Component);
+
 _reactDom2.default.render(_react2.default.createElement(Echo, null), document.getElementById('app'));
+
+_reactDom2.default.render(_react2.default.createElement(NewExperimentToggler, null), document.getElementById('newExperimentForm'));
 
 },{"react":183,"react-dom":31}],2:[function(require,module,exports){
 (function (process){
